@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joe Session 10 — Momentum & WorkKeys Lite</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --card:#1f2937;
+      --card2:#243247;
+      --text:#f8fafc;
+      --muted:#cbd5e1;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --warn:#facc15;
+      --bad:#fb7185;
+      --border:rgba(255,255,255,.14);
+      --shadow:0 15px 45px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top left,#1e3a8a 0,#0f172a 38%,#020617 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    header{
+      padding:24px 20px 12px;
+      text-align:center;
+    }
+    header h1{margin:0;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:.5px}
+    header p{margin:8px auto 0;color:var(--muted);max-width:850px;font-size:1.05rem}
+    .wrap{max-width:1180px;margin:0 auto;padding:12px 16px 40px}
+    .tabs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:center;
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:rgba(15,23,42,.92);
+      backdrop-filter:blur(10px);
+      padding:12px;
+      border-bottom:1px solid var(--border);
+    }
+    .tab{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700;
+      transition:.15s;
+    }
+    .tab:hover,.tab.active{background:var(--accent);color:#082f49;transform:translateY(-1px)}
+    section{
+      display:none;
+      margin-top:18px;
+      background:rgba(17,24,39,.82);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+    section.active{display:block}
+    h2{margin:0 0 10px;font-size:1.7rem}
+    h3{margin:18px 0 8px;color:#e0f2fe}
+    .subtitle{color:var(--muted);margin-top:0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+    }
+    .card strong{color:#e0f2fe}
+    table{width:100%;border-collapse:collapse;margin:10px 0;border-radius:14px;overflow:hidden}
+    th,td{padding:12px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+    th{background:rgba(56,189,248,.16);color:#e0f2fe}
+    tr:nth-child(even) td{background:rgba(255,255,255,.035)}
+    ul{margin-top:8px}
+    li{margin:6px 0}
+    input[type="range"]{width:100%}
+    .meterOuter{height:22px;background:#020617;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin:8px 0}
+    .meterInner{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#38bdf8);transition:.25s}
+    .bigScore{font-size:2.8rem;font-weight:900;color:#e0f2fe}
+    button{
+      border:none;
+      border-radius:13px;
+      padding:11px 14px;
+      font-weight:800;
+      cursor:pointer;
+      background:var(--accent);
+      color:#082f49;
+      margin:4px;
+      transition:.15s;
+    }
+    button:hover{transform:translateY(-1px);filter:brightness(1.05)}
+    button.secondary{background:#334155;color:#f8fafc;border:1px solid var(--border)}
+    button.good{background:var(--accent2);color:#052e16}
+    button.warn{background:var(--warn);color:#422006}
+    button.bad{background:var(--bad);color:#450a0a}
+    .choice{
+      display:block;
+      width:100%;
+      text-align:left;
+      background:#334155;
+      color:#f8fafc;
+      border:1px solid var(--border);
+      margin:8px 0;
+    }
+    .choice.correct{background:#166534}
+    .choice.wrong{background:#9f1239}
+    .feedback{
+      min-height:42px;
+      padding:12px;
+      background:rgba(2,6,23,.45);
+      border:1px dashed var(--border);
+      border-radius:14px;
+      margin-top:10px;
+      color:#e2e8f0;
+    }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.35);
+      border-radius:999px;
+      margin:3px;
+      font-weight:800;
+      color:#bae6fd;
+    }
+    .timerBox{
+      position:fixed;
+      bottom:14px;
+      right:14px;
+      background:#020617;
+      border:1px solid var(--border);
+      padding:10px 14px;
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      z-index:100;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .timerTime{font-size:1.25rem;font-weight:900;color:#e0f2fe}
+    .small{font-size:.92rem;color:var(--muted)}
+    .printOnly{display:none}
+    @media print{
+      body{background:white;color:black}
+      .tabs,.timerBox,button{display:none!important}
+      section{display:block!important;box-shadow:none;border:1px solid #999;background:white;color:black;page-break-inside:avoid}
+      .card{background:white;color:black;border:1px solid #aaa}
+      .printOnly{display:block}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Session 10: Reset, Momentum & Keeping Doors Open</h1>
+    <p>Today is about recognizing what is already working, keeping future options open, and building practical adult skills without turning the session into another school test.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('agenda', this)">Agenda</button>
+    <button class="tab" onclick="showTab('reframe', this)">Big Picture</button>
+    <button class="tab" onclick="showTab('momentum', this)">Momentum Dashboard</button>
+    <button class="tab" onclick="showTab('scenario', this)">Scenario Spinner</button>
+    <button class="tab" onclick="showTab('workkeys', this)">WorkKeys Lite</button>
+    <button class="tab" onclick="showTab('commitment', this)">Commitment</button>
+    <button class="tab" onclick="showTab('coachnotes', this)">Coach Notes</button>
+  </nav>
+
+  <main class="wrap">
+    <section id="agenda" class="active">
+      <h2>Today’s Agenda</h2>
+      <p class="subtitle">Goal: leave with a clearer sense of progress, one realistic next step, and a little WorkKeys practice that feels manageable.</p>
+      <table>
+        <thead><tr><th>Time</th><th>Activity</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>5 min</td><td>Check-In</td><td>Reconnect, lower pressure, see how work/life are going.</td></tr>
+          <tr><td>10 min</td><td>Job & Life Update</td><td>Identify what is working and what is draining energy.</td></tr>
+          <tr><td>10 min</td><td>Momentum Dashboard</td><td>Turn progress into something visible and concrete.</td></tr>
+          <tr><td>10 min</td><td>Student Choice Tool</td><td>Choose Scenario Spinner, WorkKeys Lite, or both.</td></tr>
+          <tr><td>10–15 min</td><td>WorkKeys Lite Arcade</td><td>Keep skills active with short, practical questions.</td></tr>
+          <tr><td>5 min</td><td>One Commitment</td><td>Pick one small action before next session.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Today’s Choice</h3>
+          <p>Pick the tool that feels most useful first:</p>
+          <span class="pill">Momentum Dashboard</span>
+          <span class="pill">Scenario Spinner</span>
+          <span class="pill">WorkKeys Lite</span>
+        </div>
+        <div class="card">
+          <h3>Session Rule</h3>
+          <p><strong>Small wins count.</strong> The point is not to crush a huge test today. The point is to keep moving.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="reframe">
+      <h2>Big Picture: Keep Doors Open</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>What’s Changed?</h3>
+          <p>You now have real work, real responsibilities, and a real schedule. That matters.</p>
+        </div>
+        <div class="card">
+          <h3>What Stays Important?</h3>
+          <p>WorkKeys still matters because it can keep future opportunities open, especially if a trade pathway becomes available later.</p>
+        </div>
+        <div class="card">
+          <h3>Today’s Mindset</h3>
+          <p>We are not trying to “catch up” all at once. We are building consistency and keeping the skills alive.</p>
+        </div>
+      </div>
+      <h3>Conversation Starters</h3>
+      <ul>
+        <li>What is going better than expected at work?</li>
+        <li>What has been harder than expected?</li>
+        <li>What drains the most energy during the week?</li>
+        <li>What is one thing you are handling better now than a few months ago?</li>
+        <li>What future option is worth keeping open?</li>
+      </ul>
+    </section>
+
+    <section id="momentum">
+      <h2>Momentum Dashboard</h2>
+      <p class="subtitle">Rate each area honestly. This is not a grade. It is a snapshot.</p>
+      <div class="grid">
+        <div class="card"><strong>Work Attendance / Reliability</strong><input id="m1" type="range" min="0" max="10" value="5" oninput="updateMomentum()"><div id="m1v">5/10</div></div>
+        <div class="card"><strong>Starting Tasks</strong><input id="m2" type="range" min="0" max="10" value="5" oninput="updateMomentum()"><div id="m2v">5/10</div></div>
+        <div class="card"><strong>Energy / Sleep</strong><input id="m3" type="range" min="0" max="10" value="5" oninput="updateMomentum()"><div id="m3v">5/10</div></div>
+        <div class="card"><strong>Planning the Week</strong><input id="m4" type="range" min="0" max="10" value="5" oninput="updateMomentum()"><div id="m4v">5/10</div></div>
+        <div class="card"><strong>Handling Stress</strong><input id="m5" type="range" min="0" max="10" value="5" oninput="updateMomentum()"><div id="m5v">5/10</div></div>
+        <div class="card"><strong>Keeping Future Goals Alive</strong><input id="m6" type="range" min="0" max="10" value="5" oninput="updateMomentum()"><div id="m6v">5/10</div></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Momentum Meter</h3>
+        <div class="bigScore"><span id="momentumScore">30</span>/60 XP</div>
+        <div class="meterOuter"><div id="momentumBar" class="meterInner" style="width:50%"></div></div>
+        <p id="momentumMessage">Solid starting point. Pick one small thing to improve this week.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Wins This Week</h3>
+          <textarea id="wins" rows="5" style="width:100%;border-radius:12px;padding:10px" placeholder="Example: Made it to work, handled a schedule change, started something without being pushed..."></textarea>
+        </div>
+        <div class="card">
+          <h3>Friction Points</h3>
+          <textarea id="friction" rows="5" style="width:100%;border-radius:12px;padding:10px" placeholder="Example: tired after work, forgot to plan, avoided studying..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section id="scenario">
+      <h2>Workplace Scenario Spinner</h2>
+      <p class="subtitle">Spin a situation. Choose the strongest adult response and explain why.</p>
+      <div class="card">
+        <button onclick="spinScenario()">Spin Scenario</button>
+        <button class="secondary" onclick="resetScenario()">Reset</button>
+        <h3 id="scenarioTitle">Scenario will appear here.</h3>
+        <p id="scenarioText">Click “Spin Scenario” to begin.</p>
+        <div id="scenarioChoices"></div>
+        <div id="scenarioFeedback" class="feedback">Feedback will appear here.</div>
+        <p><strong>Scenario XP:</strong> <span id="scenarioXP">0</span></p>
+      </div>
+    </section>
+
+    <section id="workkeys">
+      <h2>WorkKeys Lite Arcade</h2>
+      <p class="subtitle">Short, practical questions. Immediate feedback. No marathon test today.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Arcade Stats</h3>
+          <p><strong>Question:</strong> <span id="qNum">0</span>/<span id="qTotal">10</span></p>
+          <p><strong>Score:</strong> <span id="wkScore">0</span></p>
+          <p><strong>Streak:</strong> <span id="wkStreak">0</span></p>
+          <p><strong>XP:</strong> <span id="wkXP">0</span></p>
+        </div>
+        <div class="card">
+          <h3>Mode</h3>
+          <button onclick="startWorkKeys()">Start 10-Question Round</button>
+          <button class="secondary" onclick="shuffleWorkKeys()">New Question Mix</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3 id="wkCategory">Ready?</h3>
+        <p id="wkQuestion">Click start to begin.</p>
+        <div id="wkChoices"></div>
+        <div id="wkFeedback" class="feedback">Feedback will appear here.</div>
+      </div>
+    </section>
+
+    <section id="commitment">
+      <h2>One Commitment Before Next Session</h2>
+      <p class="subtitle">Keep it small enough that it can actually happen.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Pick One</h3>
+          <label><input type="radio" name="commit"> Start one WorkKeys mini-practice for 5 minutes.</label><br><br>
+          <label><input type="radio" name="commit"> Check my work schedule and plan one day ahead.</label><br><br>
+          <label><input type="radio" name="commit"> Set out clothes/items before work one time.</label><br><br>
+          <label><input type="radio" name="commit"> Save a small amount from my paycheck.</label><br><br>
+          <label><input type="radio" name="commit"> Ask one question at work when something is unclear.</label>
+        </div>
+        <div class="card">
+          <h3>Custom Commitment</h3>
+          <textarea id="customCommit" rows="6" style="width:100%;border-radius:12px;padding:10px" placeholder="My one action before next session is..."></textarea>
+          <button onclick="saveCommitment()">Save Commitment</button>
+          <div id="commitSaved" class="feedback">Nothing saved yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="coachnotes">
+      <h2>Coach Notes</h2>
+      <p class="subtitle">For session documentation after meeting.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Suggested Session Note Language</h3>
+          <p>Joe participated in a reset-focused session centered on maintaining momentum while balancing new work responsibilities. The session emphasized adult-functioning skills, including task initiation, planning, self-monitoring, and workplace problem solving. Joe reflected on what is currently going well, identified areas creating friction, and completed a brief WorkKeys-style practice activity to maintain skill readiness. The session reframed WorkKeys as a way to keep future options open rather than as an immediate high-pressure task. Joe selected one manageable action step to complete before the next session.</p>
+        </div>
+        <div class="card">
+          <h3>Recommended Next Step</h3>
+          <p>Next session should focus on building a realistic weekly routine around Joe’s work schedule, including sleep, transportation, preparation time, and a short skill-maintenance habit.</p>
+        </div>
+      </div>
+      <button onclick="window.print()">Print / Save Session Summary</button>
+    </section>
+  </main>
+
+  <div class="timerBox">
+    <span class="small">Session Timer</span>
+    <span id="timer" class="timerTime">00:00</span>
+    <button class="secondary" onclick="timerStart()">Start</button>
+    <button class="secondary" onclick="timerStop()">Stop</button>
+    <button class="secondary" onclick="timerReset()">Reset</button>
+  </div>
+
+<script>
+function showTab(id, btn){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+let seconds=0, timerInt=null;
+function renderTimer(){
+  const m=String(Math.floor(seconds/60)).padStart(2,'0');
+  const s=String(seconds%60).padStart(2,'0');
+  document.getElementById('timer').textContent=`${m}:${s}`;
+}
+function timerStart(){ if(!timerInt){timerInt=setInterval(()=>{seconds++;renderTimer()},1000)}}
+function timerStop(){ clearInterval(timerInt); timerInt=null;}
+function timerReset(){ timerStop(); seconds=0; renderTimer();}
+
+function updateMomentum(){
+  let sum=0;
+  for(let i=1;i<=6;i++){
+    const val=Number(document.getElementById('m'+i).value);
+    document.getElementById('m'+i+'v').textContent=val+'/10';
+    sum+=val;
+  }
+  document.getElementById('momentumScore').textContent=sum;
+  document.getElementById('momentumBar').style.width=(sum/60*100)+'%';
+  let msg='Solid starting point. Pick one small thing to improve this week.';
+  if(sum>=48) msg='Strong momentum. Protect what is working and do not overload the week.';
+  else if(sum>=36) msg='Good movement. One or two small systems could make the week easier.';
+  else if(sum>=24) msg='Some momentum is there. Keep the next step very small and very specific.';
+  else msg='This looks like a low-energy week. Focus on one easy win, not a giant reset.';
+  document.getElementById('momentumMessage').textContent=msg;
+}
+
+const scenarios=[
+  {
+    title:'Schedule Change',
+    text:'Your boss asks you to stay later than expected, but you already planned something after work.',
+    choices:[
+      ['Say nothing, get irritated, and hope it works out.',0,'This hides the problem and usually creates more stress.'],
+      ['Ask how long they need you and explain your conflict respectfully.',2,'Strong response: clear, respectful, and solution-focused.'],
+      ['Leave without saying anything.',0,'That creates a reliability problem.']
+    ]
+  },
+  {
+    title:'Unclear Instructions',
+    text:'You are given a task, but the directions are vague and you are not sure what “done right” looks like.',
+    choices:[
+      ['Guess and rush through it.',0,'Fast is not always better if the target is unclear.'],
+      ['Ask one clarifying question before starting.',2,'Strong response: this prevents mistakes and shows responsibility.'],
+      ['Avoid the task until someone notices.',0,'Avoidance usually makes the problem bigger.']
+    ]
+  },
+  {
+    title:'Low Energy After Work',
+    text:'You get home tired and know you should do one small thing to stay on track.',
+    choices:[
+      ['Pick a 5-minute task and stop after that if needed.',2,'Strong response: small starts build consistency.'],
+      ['Tell yourself you failed because you are tired.',0,'That turns a normal energy dip into a motivation problem.'],
+      ['Do everything at once even though you are exhausted.',1,'Effort is good, but overdoing it can burn you out.']
+    ]
+  },
+  {
+    title:'Work Mistake',
+    text:'You realize you made a small mistake at work.',
+    choices:[
+      ['Hide it and hope nobody notices.',0,'Small mistakes become bigger when hidden.'],
+      ['Tell the right person, own it briefly, and ask how to fix it.',2,'Strong response: responsible and mature.'],
+      ['Quit thinking about it and get mad at yourself.',0,'That does not fix the issue or build skill.']
+    ]
+  },
+  {
+    title:'Future Goal Drift',
+    text:'You have been working a lot and have not thought about WorkKeys or the future path lately.',
+    choices:[
+      ['Drop it completely because it is not urgent right now.',0,'That may close doors later.'],
+      ['Do one short maintenance round this week.',2,'Strong response: low pressure, but keeps the skill alive.'],
+      ['Force yourself into a huge study session.',1,'It might work once, but it is not a sustainable system.']
+    ]
+  }
+];
+let scenarioXP=0;
+function spinScenario(){
+  const s=scenarios[Math.floor(Math.random()*scenarios.length)];
+  document.getElementById('scenarioTitle').textContent=s.title;
+  document.getElementById('scenarioText').textContent=s.text;
+  document.getElementById('scenarioFeedback').textContent='Choose a response.';
+  const box=document.getElementById('scenarioChoices');
+  box.innerHTML='';
+  s.choices.forEach((c,idx)=>{
+    const b=document.createElement('button');
+    b.className='choice';
+    b.textContent=c[0];
+    b.onclick=()=>{
+      scenarioXP+=c[1]*10;
+      document.getElementById('scenarioXP').textContent=scenarioXP;
+      document.getElementById('scenarioFeedback').textContent=c[2] + (c[1]===2?' +20 XP':'');
+      [...box.children].forEach(x=>x.disabled=true);
+      b.classList.add(c[1]===2?'correct':'wrong');
+    };
+    box.appendChild(b);
+  });
+}
+function resetScenario(){
+  scenarioXP=0;
+  document.getElementById('scenarioXP').textContent='0';
+  document.getElementById('scenarioTitle').textContent='Scenario will appear here.';
+  document.getElementById('scenarioText').textContent='Click “Spin Scenario” to begin.';
+  document.getElementById('scenarioChoices').innerHTML='';
+  document.getElementById('scenarioFeedback').textContent='Feedback will appear here.';
+}
+
+const wkBank=[
+  {cat:'Workplace Math',q:'A shift starts at 8:30 AM and ends at 2:15 PM. How long is the shift?',a:['4 hr 45 min','5 hr 15 min','5 hr 45 min','6 hr'],c:2,ex:'From 8:30 to 2:15 is 5 hours and 45 minutes.'},
+  {cat:'Workplace Math',q:'A jacket costs $80 and is 25% off. What is the sale price?',a:['$20','$55','$60','$65'],c:2,ex:'25% of 80 is 20. 80 - 20 = 60.'},
+  {cat:'Workplace Math',q:'You earn $15 per hour for 6 hours. About how much do you earn before taxes?',a:['$75','$80','$90','$100'],c:2,ex:'15 × 6 = 90.'},
+  {cat:'Applied Math',q:'A box weighs 18 pounds. You need to move 7 boxes. What is the total weight?',a:['108 lb','116 lb','126 lb','136 lb'],c:2,ex:'18 × 7 = 126.'},
+  {cat:'Applied Math',q:'A tank holds 24 gallons. It is 3/4 full. How many gallons are in it?',a:['12','16','18','20'],c:2,ex:'3/4 of 24 = 18.'},
+  {cat:'Workplace Documents',q:'A memo says employees must clock in before putting away personal items. What should an employee do first?',a:['Put away personal items','Clock in','Ask a coworker','Wait until break'],c:1,ex:'The memo says clock in before putting away personal items.'},
+  {cat:'Workplace Documents',q:'A schedule shows Sam works Mon, Wed, Fri. Today is Wednesday. What should Sam do?',a:['Report to work','Stay home','Call off','Work Saturday'],c:0,ex:'Wednesday is one of Sam’s scheduled work days.'},
+  {cat:'Workplace Documents',q:'A safety notice says goggles are required when cutting metal. When are goggles needed?',a:['Only if tired','Only outside','When cutting metal','Never'],c:2,ex:'The notice directly states goggles are required when cutting metal.'},
+  {cat:'Graphic Literacy',q:'A chart shows 12 orders Monday, 18 Tuesday, and 15 Wednesday. Which day had the most orders?',a:['Monday','Tuesday','Wednesday','They are equal'],c:1,ex:'18 is the largest number.'},
+  {cat:'Graphic Literacy',q:'A table lists break time as 10:15–10:30. How long is the break?',a:['10 minutes','15 minutes','20 minutes','30 minutes'],c:1,ex:'From 10:15 to 10:30 is 15 minutes.'},
+  {cat:'Applied Math',q:'A worker completes 9 parts per hour. At that rate, how many parts in 4 hours?',a:['32','34','36','40'],c:2,ex:'9 × 4 = 36.'},
+  {cat:'Workplace Math',q:'A $120 tool set is discounted by 10%. How much is the discount?',a:['$10','$12','$20','$108'],c:1,ex:'10% of 120 is 12.'},
+  {cat:'Workplace Documents',q:'A policy says report injuries immediately to a supervisor. What is the correct action after an injury?',a:['Wait until tomorrow','Tell a supervisor right away','Tell a friend only','Ignore small injuries'],c:1,ex:'Immediately means right away.'},
+  {cat:'Applied Math',q:'You need 2.5 feet of wire for each item. How much wire for 4 items?',a:['6 ft','8 ft','10 ft','12 ft'],c:2,ex:'2.5 × 4 = 10.'},
+  {cat:'Graphic Literacy',q:'A checklist has 8 tasks. You completed 6. What fraction is complete?',a:['1/4','1/2','3/4','7/8'],c:2,ex:'6 out of 8 simplifies to 3/4.'}
+];
+let wkQuestions=[], wkIndex=0, wkScore=0, wkStreak=0, wkXP=0;
+function shuffle(arr){return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);}
+function shuffleWorkKeys(){
+  wkQuestions=shuffle(wkBank).slice(0,10);
+  wkIndex=0; wkScore=0; wkStreak=0; wkXP=0;
+  updateWKStats();
+  document.getElementById('wkCategory').textContent='Ready?';
+  document.getElementById('wkQuestion').textContent='Click start to begin.';
+  document.getElementById('wkChoices').innerHTML='';
+  document.getElementById('wkFeedback').textContent='Feedback will appear here.';
+}
+function startWorkKeys(){
+  shuffleWorkKeys();
+  showWKQuestion();
+}
+function updateWKStats(){
+  document.getElementById('qNum').textContent=Math.min(wkIndex+1, wkQuestions.length || 0);
+  if(wkIndex>=wkQuestions.length && wkQuestions.length>0) document.getElementById('qNum').textContent=wkQuestions.length;
+  document.getElementById('qTotal').textContent=wkQuestions.length || 10;
+  document.getElementById('wkScore').textContent=wkScore;
+  document.getElementById('wkStreak').textContent=wkStreak;
+  document.getElementById('wkXP').textContent=wkXP;
+}
+function showWKQuestion(){
+  if(wkIndex>=wkQuestions.length){
+    document.getElementById('wkCategory').textContent='Round Complete';
+    document.getElementById('wkQuestion').textContent=`Final score: ${wkScore}/${wkQuestions.length}. ${wkScore>=8?'Strong round.':wkScore>=6?'Solid maintenance round.':'Good effort. Review the missed explanations and keep it light.'}`;
+    document.getElementById('wkChoices').innerHTML='';
+    document.getElementById('wkFeedback').textContent='Round finished. Consider stopping while momentum is positive.';
+    updateWKStats();
+    return;
+  }
+  const q=wkQuestions[wkIndex];
+  document.getElementById('wkCategory').textContent=q.cat;
+  document.getElementById('wkQuestion').textContent=q.q;
+  document.getElementById('wkFeedback').textContent='Choose an answer.';
+  const box=document.getElementById('wkChoices');
+  box.innerHTML='';
+  q.a.forEach((ans,idx)=>{
+    const b=document.createElement('button');
+    b.className='choice';
+    b.textContent=ans;
+    b.onclick=()=>{
+      [...box.children].forEach(x=>x.disabled=true);
+      if(idx===q.c){
+        wkScore++; wkStreak++; wkXP += 10 + (wkStreak>=3?5:0);
+        b.classList.add('correct');
+        document.getElementById('wkFeedback').textContent='Correct. ' + q.ex + (wkStreak>=3?' Streak bonus +5 XP.':'');
+      }else{
+        wkStreak=0;
+        b.classList.add('wrong');
+        box.children[q.c].classList.add('correct');
+        document.getElementById('wkFeedback').textContent='Not quite. ' + q.ex;
+      }
+      wkIndex++;
+      updateWKStats();
+      const next=document.createElement('button');
+      next.textContent=wkIndex>=wkQuestions.length?'Finish Round':'Next Question';
+      next.className='good';
+      next.onclick=showWKQuestion;
+      box.appendChild(next);
+    };
+    box.appendChild(b);
+  });
+  updateWKStats();
+}
+function saveCommitment(){
+  const txt=document.getElementById('customCommit').value.trim();
+  const checked=[...document.querySelectorAll('input[name="commit"]')].find(x=>x.checked);
+  const val=txt || (checked?checked.parentElement.textContent.trim():'No commitment selected yet.');
+  localStorage.setItem('joe_session10_commitment', val);
+  document.getElementById('commitSaved').textContent='Saved: ' + val;
+}
+window.onload=()=>{
+  updateMomentum();
+  const saved=localStorage.getItem('joe_session10_commitment');
+  if(saved) document.getElementById('commitSaved').textContent='Saved: ' + saved;
+};
+</script>
+</body>
+</html>
