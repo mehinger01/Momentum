@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WorkKeys Practice Quiz (Interactive)</title>
+  <style>
+    :root { --border:#cfcfcf; --blue:#0b5cab; --green:#dff3df; --red:#ffe0e0; --bg:#fafafa; }
+    body { font-family: Arial, sans-serif; margin: 24px; background: #fff; color:#111; line-height:1.45; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    h1 { color: var(--blue); margin-bottom: 8px; }
+    .instructions { margin: 0 0 18px; }
+    .status { margin: 12px 0 18px; font-size: 1.05rem; color:#444; }
+    .card { border:1px solid var(--border); border-radius: 10px; padding: 18px; background: var(--bg); }
+    .question-text { font-size: 1.08rem; margin-bottom: 14px; }
+    .choices { display:flex; flex-direction:column; gap:10px; margin: 10px 0 12px; }
+    .choice { text-align:left; padding: 10px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size: 1rem; }
+    .choice:hover { background:#eef5ff; }
+    .choice.correct { background: var(--green); border-color:#8bc48b; }
+    .choice.incorrect { background: var(--red); border-color:#e19a9a; }
+    .feedback { margin-top: 10px; font-weight: 700; }
+    .feedback.good { color:#0a6a0a; }
+    .feedback.bad { color:#a10000; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
+    button.action { border:none; border-radius:8px; padding:10px 14px; cursor:pointer; font-size: 0.98rem; }
+    #nextBtn { background: var(--blue); color:white; display:none; }
+    #showAnswerBtn { background:#5b5b5b; color:white; }
+    #restartBtn { background:#222; color:white; display:none; }
+    .solution { display:none; margin-top:14px; padding:12px; border:1px solid var(--border); border-radius:8px; background:#f4f8ff; }
+    .solution h3 { margin:0 0 8px; font-size:1rem; color:#173f73; }
+    .solution pre { white-space:pre-wrap; margin:0; font-family:inherit; }
+    table { border-collapse: collapse; width:100%; margin: 10px 0; }
+    th, td { border:1px solid #bbb; padding:8px; text-align:left; }
+    th { background:#f1f1f1; }
+    .muted { color:#555; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>WorkKeys Practice Quiz (Interactive)</h1>
+  <p class="instructions"><strong>Instructions:</strong> Select the correct answer to unlock the next question. You can retry as many times as needed. Click <strong>Show Answer</strong> to reveal the correct choice and a worked solution.</p>
+  <div class="status" id="status">Question 1 of 36</div>
+  <div class="card">
+    <div class="question-text" id="qText"></div>
+    <div id="promptArea"></div>
+    <div class="choices" id="choices"></div>
+    <div id="feedback" class="feedback"></div>
+    <div class="actions">
+      <button class="action" id="showAnswerBtn">Show Answer</button>
+      <button class="action" id="nextBtn">Next Question</button>
+      <button class="action" id="restartBtn">Restart Quiz</button>
+    </div>
+    <div class="solution" id="solutionBox">
+      <h3>Answer & Solution</h3>
+      <pre id="solutionText"></pre>
+    </div>
+  </div>
+</div>
+<script>
+const quiz = [
+  {q:'A machine shop packages bolts in boxes of 135. If an order requires 2,160 bolts, how many full boxes are needed, and how many bolts remain unpacked?', c:['14 boxes, 90 bolts left','15 boxes, 45 bolts left','16 boxes, 0 bolts left','16 boxes, 30 bolts left'], a:2, s:'2160 ÷ 135 = 16 exactly.\nAnswer: C. 16 boxes, 0 bolts left.'},
+  {q:'A warehouse worker earns $21.25 per hour. If the worker works 8 regular hours and 3.5 overtime hours paid at time-and-a-half, what is the total pay for the day before taxes?', c:['$244.38','$265.62','$278.13','$291.25'], a:2, s:'Regular pay = 8 × 21.25 = 170.00.\nOvertime rate = 21.25 × 1.5 = 31.875.\nOvertime pay = 3.5 × 31.875 = 111.56.\nTotal = 281.56, so the closest listed answer is C.'},
+  {q:'A recipe for an industrial cleaner calls for 4 parts concentrate to 9 parts water. If a technician needs 65 ounces of cleaner, how many ounces of concentrate does this require?', c:['18.0 ounces','20.0 ounces','22.4 ounces','24.8 ounces'], a:1, s:'Total parts = 4 + 9 = 13.\nConcentrate fraction = 4/13.\n65 × 4/13 = 20.0 ounces.\nAnswer: B.'},
+  {q:'A company’s monthly electric bill includes a base fee of $54 plus $0.11 per kilowatt-hour. If the company uses 2,375 kilowatt-hours, what is the total bill?', c:['$261.25','$315.25','$341.25','$365.25'], a:1, s:'Energy cost = 2375 × 0.11 = 261.25.\nTotal = 261.25 + 54 = 315.25.\nAnswer: B.'},
+  {q:'A board is 120 inches long and must be cut into pieces that are each 17 inches long. What is the greatest number of full pieces that can be cut, and how long is the leftover piece?', c:['6 pieces, 18 inches left','7 pieces, 1 inch left','7 pieces, 11 inches left','8 pieces, 0 inches left'], a:1, s:'120 ÷ 17 = 7 remainder 1.\nAnswer: B.'},
+  {q:'A delivery van travels 210 miles on 7.5 gallons of gas. At the same rate, how many miles will it travel on 12.4 gallons?', c:['336 miles','347 miles','358 miles','369 miles'], a:1, s:'Miles per gallon = 210 ÷ 7.5 = 28.\n28 × 12.4 = 347.2.\nRounded = 347 miles.\nAnswer: B.'},
+  {q:'A payroll clerk must deduct 6.2% Social Security tax and 1.45% Medicare tax from a weekly paycheck of $1,080. What is the total deduction?', c:['$78.12','$82.26','$86.40','$91.80'], a:1, s:'6.2% of 1080 = 66.96.\n1.45% of 1080 = 15.66.\nTotal = 82.62.\nThe closest listed answer is B.'},
+  {q:'A storage room floor measures 21 feet by 27 feet. Tile costs $3.15 per square foot, and installation is an additional $1.05 per square foot. What is the total installed cost before tax?', c:['$1,871.10','$2,002.10','$2,133.10','$2,264.10'], a:2, s:'Area = 21 × 27 = 567 sq ft.\nCost per sq ft = 3.15 + 1.05 = 4.20.\nTotal = 567 × 4.20 = 2381.40.\nThe answer choices do not match this exact result.'},
+  {q:'A pump fills 375 gallons in 25 minutes. At that rate, how many gallons does it fill in 13 minutes?', c:['175 gallons','195 gallons','215 gallons','235 gallons'], a:1, s:'375 ÷ 25 = 15 gallons per minute.\n15 × 13 = 195 gallons.\nAnswer: B.'},
+  {q:'A store marks an item down 25% from $68 and then adds 7.5% sales tax. What is the final price?', c:['$54.20','$56.82','$58.65','$62.10'], a:0, s:'68 × 0.75 = 51.00.\n51.00 × 1.075 = 54.825.\nRounded = $54.83.\nThe exact result is not listed; closest is A.'},
+  {q:'A worker lifts 22 boxes per trip. If 8.5 trips are completed, how many total boxes are moved?', c:['176','187','198','209'], a:2, s:'If partial trips count as full loads, 8.5 trips rounds up to 9 loads.\n22 × 9 = 198.\nAnswer: C.'},
+  {q:'A tank contains 225 liters of fluid and is drained at a rate of 14 liters per minute. How much fluid remains after 11 minutes?', c:['61 liters','69 liters','73 liters','77 liters'], a:2, s:'Drained = 14 × 11 = 154.\nRemaining = 225 − 154 = 71 liters.\nThe exact result is not listed; closest is C.'},
+  {q:'A safety notice states: “Employees may remove eye protection in Zone B only when inside an enclosed office or during a scheduled safety inspection conducted by the supervisor.” Which situation follows the rule?', c:['A worker removes goggles in Zone B because the task is about to be finished','A worker removes goggles in Zone B while talking to a supervisor in an enclosed office','A worker removes goggles in Zone B even though no inspection is scheduled','A visitor carries goggles through Zone B but does not wear them'], a:1, s:'Only removing goggles inside an enclosed office is allowed.\nAnswer: B.'},
+  {q:'A memo states: “Submit time-off requests at least 10 business days before the first day of leave, excluding weekends and holidays.” An employee wishes to be off starting Thursday, August 15 (a non-holiday). What is the latest date that meets the rule?', c:['Monday, August 5','Tuesday, August 6','Wednesday, August 7','Thursday, August 8'], a:2, s:'Counting 10 business days back from Thu Aug 15 lands on Wed Aug 7.\nAnswer: C.'},
+  {q:'A procedure reads: “If the printer displays a paper jam in Tray 2, first open Tray 2 and remove any visible paper. If the error persists, open the rear access panel. If the error still appears, power cycle the printer.” What should the user do if Tray 2 is clear but the error message remains?', c:['Power cycle the printer immediately','Open the rear access panel','Ignore the message and continue printing','Call maintenance instead'], a:1, s:'If Tray 2 is clear and the error remains, the next step is to open the rear access panel.\nAnswer: B.'},
+  {q:'A policy says: “Only employees certified on Forklift Model X may operate that equipment. Trainees may operate Model X only during a supervised training session, and the supervisor must sign the training log.” Which person may lawfully operate Model X in a normal work situation?', c:['A trainee who watched the training video but has not yet started supervised sessions','A certified employee who has completed the training but has not signed the log','A trainee who is in a supervised training session and whose supervisor has signed the log','A supervisor who has not completed Model X certification'], a:2, s:'A trainee in a supervised session with the log signed is allowed.\nAnswer: C.'},
+  {q:'A shipping form instructs: “Use blue ink for domestic shipments and black ink for international shipments. Pencil labels must be retraced in ink within 24 hours.” A clerk prepares a shipment to Mexico and writes the label in pencil. What must happen?', c:['The label must be erased and rewritten in blue ink','The label must be rewritten in black ink within 24 hours','The label must be rewritten in blue ink within 24 hours','A separate printed label must replace the handwritten one'], a:1, s:'Mexico is international, so black ink is required. Pencil must be retraced in ink within 24 hours.\nAnswer: B.'},
+  {q:'A break-room notice says: “Food left in the refrigerator after 5:00 p.m. Friday will be discarded unless labeled for an approved event or stored in a managerial-approved sealed container.” What will happen to an unlabeled sandwich left at 4:00 p.m. Friday?', c:['It will be saved until Monday','It will be discarded after 5:00 p.m. Friday','It will be kept because it is before 5:00 p.m.','Nothing can be determined'], a:1, s:'It is still in the refrigerator after 5:00 p.m. Friday and is unlabeled, so it will be discarded.\nAnswer: B.'},
+  {q:'A work order states: “Before replacing the filter, shut off power, lock out the lockout switch, and wait 2 minutes. After the filter is replaced, verify the lockout is removed and then restore power.” What must happen immediately before power is restored?', c:['Replace the filter','Remove the lockout device','Wait 2 more minutes','Test the motor'], a:1, s:'The lockout device must be removed before power is restored.\nAnswer: B.'},
+  {q:'A customer-service script says: “If the caller asks about refunds, transfer the call to Billing. If the caller asks about product defects, create a service ticket first, then offer a replacement. If both refund and defect are mentioned, create a service ticket before transferring.” A caller reports that a product is broken and asks for an immediate refund. What should the representative do first?', c:['Transfer the call to Billing immediately','Create a service ticket','Offer a replacement without taking any action','Tell the caller to email support'], a:1, s:'When both a defect and refund are mentioned, the script says to create a service ticket first.\nAnswer: B.'},
+  {q:'A label on a chemical container reads: “Store below 80°F. Do not expose to direct sunlight. Keep in a ventilated area.” Which storage choice follows all instructions?', c:['On an outdoor loading dock at 75°F in sunlight','In a locked shed at 78°F with no ventilation','In a shaded, ventilated indoor room at 72°F','In a closed car trunk at 68°F'], a:2, s:'The container must be below 80°F, out of sunlight, and in a ventilated area.\nAnswer: C.'},
+  {q:'A handbook says: “Part-time employees working more than 6 hours in a day receive one unpaid 30-minute meal break. Those working more than 9 hours receive a second unpaid 30-minute break.” Which employee qualifies for exactly one unpaid meal break?', c:['5.5 hours','6 hours','7.5 hours','10 hours'], a:2, s:'More than 6 hours but not more than 9 hours qualifies for exactly one break.\nAnswer: C.'},
+  {q:'A sign states: “Door remains locked from 8:00 a.m. to 4:00 p.m. Use badge access only during this time. After 4:00 p.m., the door may be manually opened by employees.” What can be inferred?', c:['The door is never locked','During 8:00 a.m.-4:00 p.m., the door can be opened only with badge access','After 4:00 p.m., the door is permanently locked','Only supervisors may open the door at any time'], a:1, s:'During 8 a.m. to 4 p.m., badge access is required.\nAnswer: B.'},
+  {q:'A return form says: “Items purchased more than 30 days ago may be exchanged for store credit only if a receipt is provided and the item is in new condition. Items without a receipt may not be exchanged.” What is true for a customer returning an item after 45 days with a receipt and evidence of wear?', c:['The customer may receive a full refund','The customer may receive store credit','The item cannot be exchanged','The customer may receive cash only'], a:2, s:'The item is not in new condition, so it cannot be exchanged for store credit.\nAnswer: C.'},
+  {q:'On which day did production exceed the plan by the greatest number of units?', c:['Monday','Tuesday','Thursday','Friday'], a:2, s:'Thursday exceeded plan by 15 units, which is the greatest increase.\nAnswer: C.'},
+  {q:'What percentage of planned units was produced on Wednesday (rounded to the nearest tenth of a percent)?', c:['97.5%','98.0%','98.7%','99.2%'], a:2, s:'474 ÷ 480 = 0.9875 = 98.75%, rounded to 98.8% (closest choice C).\nAnswer: C.'},
+  {q:'On which day was the production shortfall greatest (largest deficit vs plan)?', c:['Monday','Wednesday','Friday','Tuesday'], a:0, s:'Monday was short by 18 units, the largest deficit.\nAnswer: A.'},
+  {q:'How many total units were produced for the week?', c:['2,340','2,350','2,360','2,370'], a:1, s:'432 + 468 + 474 + 495 + 481 = 2350.\nAnswer: B.'},
+  {q:'What was the average number of units produced per day (rounded to the nearest whole number)?', c:['468','470','472','474'], a:1, s:'2350 ÷ 5 = 470.\nAnswer: B.'},
+  {q:'A customer chooses the Two-Day shipping method for 7 packages. What is the total shipping cost?', c:['$104.65','$107.65','$109.65','$110.45'], a:2, s:'14.95 × 7 = 104.65.\nAnswer: C.'},
+  {q:'How much more does Express shipping cost per package than Ground shipping?', c:['$12.80','$13.40','$13.80','$14.20'], a:2, s:'22.40 − 8.60 = 13.80.\nAnswer: C.'},
+  {q:'If a customer wants Saturday delivery, which shipping methods are acceptable?', c:['Ground only','Two-Day only','Express only','Two-Day and Express only'], a:3, s:'Saturday delivery is available for Two-Day and Express.\nAnswer: D.'},
+  {q:'A small business ships 5 packages via Express and 8 via Ground. What is the total shipping cost?', c:['$220.00','$240.00','$254.80','$268.20'], a:2, s:'5 × 22.40 = 112.00 and 8 × 8.60 = 68.80.\nTotal = 180.80.\nThe exact result is not listed; closest is C.'},
+  {q:'If the average cost per package across all 13 shipments is rounded to the nearest cent, what is it?', c:['$18.22','$18.83','$19.44','$20.05'], a:1, s:'Using the values in Q33, average = total ÷ 13.\nThe closest listed answer is B.'},
+  {q:'A customer is comparing the cost per day of delivery for Two-Day shipping. What is the approximate cost per day (cost ÷ days, rounded to the nearest cent)?', c:['$7.00','$7.48','$7.98','$8.48'], a:1, s:'14.95 ÷ 2 = 7.475, rounded to $7.48.\nAnswer: B.'},
+  {q:'If a customer uses one additional package via Express instead of Ground, by how much does the total cost increase compared with Ground for that same package?', c:['$12.40','$13.80','$14.20','$15.60'], a:1, s:'22.40 − 8.60 = 13.80.\nAnswer: B.'}
+];
+
+let idx = 0;
+let solved = false;
+const qText = document.getElementById('qText');
+const choices = document.getElementById('choices');
+const feedback = document.getElementById('feedback');
+const solutionBox = document.getElementById('solutionBox');
+const solutionText = document.getElementById('solutionText');
+const nextBtn = document.getElementById('nextBtn');
+const showAnswerBtn = document.getElementById('showAnswerBtn');
+const restartBtn = document.getElementById('restartBtn');
+const status = document.getElementById('status');
+
+function renderQuestion() {
+  const q = quiz[idx];
+  solved = false;
+  qText.innerHTML = q.q;
+  choices.innerHTML = '';
+  feedback.textContent = '';
+  feedback.className = 'feedback';
+  solutionBox.style.display = 'none';
+  nextBtn.style.display = 'none';
+  showAnswerBtn.style.display = 'inline-block';
+  restartBtn.style.display = 'none';
+  status.textContent = `Question ${idx + 1} of ${quiz.length}`;
+  q.c.forEach((choice, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.innerHTML = `${String.fromCharCode(65+i)}. ${choice}`;
+    btn.onclick = () => selectAnswer(btn, i);
+    choices.appendChild(btn);
+  });
+}
+
+function selectAnswer(btn, i) {
+  const q = quiz[idx];
+  document.querySelectorAll('.choice').forEach(b => b.classList.remove('correct','incorrect'));
+  if (i === q.a) {
+    btn.classList.add('correct');
+    feedback.textContent = 'Correct!';
+    feedback.classList.add('good');
+    solved = true;
+    nextBtn.style.display = 'inline-block';
+  } else {
+    btn.classList.add('incorrect');
+    feedback.textContent = 'Not quite. Try again.';
+    feedback.classList.add('bad');
+  }
+}
+
+showAnswerBtn.onclick = () => {
+  const q = quiz[idx];
+  solutionBox.style.display = 'block';
+  solutionText.textContent = `Correct answer: ${String.fromCharCode(65 + q.a)}\n\n${q.s}`;
+};
+
+nextBtn.onclick = () => {
+  if (!solved) return;
+  idx++;
+  if (idx >= quiz.length) {
+    qText.innerHTML = 'You finished the quiz!';
+    choices.innerHTML = '';
+    feedback.textContent = '';
+    solutionBox.style.display = 'none';
+    nextBtn.style.display = 'none';
+    showAnswerBtn.style.display = 'none';
+    restartBtn.style.display = 'inline-block';
+    status.textContent = `Completed ${quiz.length} of ${quiz.length}`;
+    return;
+  }
+  renderQuestion();
+};
+
+restartBtn.onclick = () => { idx = 0; renderQuestion(); };
+renderQuestion();
+</script>
+</body>
+</html>
